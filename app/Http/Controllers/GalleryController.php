@@ -6,6 +6,7 @@ use App\Models\Image;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
@@ -46,8 +47,23 @@ class GalleryController extends Controller
         }
     }
 
-    public function delete()
+    /**
+     * Deleta a imagem
+     *
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function delete(int $id): RedirectResponse
     {
+        $image = Image::findOrFail($id);
+        $url = parse_url($image->url);
+        $path = ltrim($url['path'], '/storage\/');
 
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+            $image->delete();
+        }
+
+        return redirect()->route('index');
     }
 }

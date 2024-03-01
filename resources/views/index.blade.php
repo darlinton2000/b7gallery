@@ -35,7 +35,7 @@
 
     <main class="gallery-container wrapper">
         @foreach($images as $image)
-            <x-image :url="$image->url" :title="$image->title" />
+            <x-image :id="$image->id" :url="$image->url" :title="$image->title" />
         @endforeach
     </main>
 

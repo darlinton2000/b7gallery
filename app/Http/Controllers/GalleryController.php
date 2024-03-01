@@ -19,7 +19,12 @@ class GalleryController extends Controller
 
     public function upload(Request $request)
     {
-        dd($request);
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name = $image->hashName();
+            $return = $image->storePublicly('uploads', 'public', $name);
+            dd($return);
+        }
     }
 
     public function delete()

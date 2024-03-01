@@ -34,18 +34,9 @@
     </header>
 
     <main class="gallery-container wrapper">
-        <x-image url="./assets/images/img-1.png" title="Doguinhoo 🐶" />
-        <x-image url="./assets/images/img-2.png" title="Cafézinho!!" />
-        <x-image url="./assets/images/img-3.png" title="Fériasss!!" />
-        <x-image url="./assets/images/img-4.png" title="Sorria, sem motivo!" />
-        <x-image url="./assets/images/img-5.png" title="Foto da foto" />
-        <x-image url="./assets/images/img-6.png" title="Diga X 📷" />
-        <x-image url="./assets/images/img-7.png" title="Conceito!" />
-        <x-image url="./assets/images/img-8.png" title="Rua desconhecida." />
-        <x-image url="./assets/images/img-9.png" title="Bleecker St." />
-        <x-image url="./assets/images/img-10.png" title="Pedal Monstro!!!" />
-        <x-image url="./assets/images/img-11.png" title="Outro Doguinho" />
-        <x-image url="./assets/images/img-12.png" title="Fim de tarde!" />
+        @foreach($images as $image)
+            <x-image :url="$image->url" :title="$image->title" />
+        @endforeach
     </main>
 
     <footer class="wrapper">

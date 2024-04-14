@@ -4,17 +4,36 @@ namespace App\Services;
 
 use App\Interfaces\ImageServiceInterface;
 use App\Models\Image;
+use Exception;
+use Error;
 use Illuminate\Support\Facades\Storage;
 
 class ImageService implements ImageServiceInterface
 {
+    /**
+     * Salva a imagem no disco e no banco de dados
+     *
+     * @param $image
+     * @param $title
+     * @return Image
+     */
+    public function storeNewImage($image, $title): Image
+    {
+        try {
+            $url = $this->storeImageInDisk($image);
+            return $this->storeImageInDatabase($title, $url);
+        } catch (Exception $e) {
+            throw new Error('Erro ao salvar a imagem, tente novamente.');
+        }
+    }
+
     /**
      * Salva a imagem no disco
      *
      * @param $image
      * @return string
      */
-    public function storeImageInDisk($image): string
+    private function storeImageInDisk($image): string
     {
         $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
 
@@ -28,7 +47,7 @@ class ImageService implements ImageServiceInterface
      * @param $url
      * @return Image
      */
-    public function storeImageInDatabase($title, $url): Image
+    private function storeImageInDatabase($title, $url): Image
     {
         return Image::create([
             'title' => $title,

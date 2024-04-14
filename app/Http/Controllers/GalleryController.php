@@ -46,11 +46,10 @@ class GalleryController extends Controller
         $image = $request->file('image');
 
         try {
-            $url = $this->imageService->storeImageInDisk($image);
-            $dataBaseImage = $this->imageService->storeImageInDatabase($title, $url);
+            $dataBaseImage = $this->imageService->storeNewImage($image, $title['title']);
         } catch (Exception $error) {
             $this->imageService->deleteDataBaseImage($dataBaseImage);
-            $this->imageService->deleteImageFromDisk($url);
+            $this->imageService->deleteImageFromDisk($dataBaseImage->url);
 
             return redirect()->back()->withErrors([
                 'error' => 'Erro ao salvar a imagem. Tente novamente.'

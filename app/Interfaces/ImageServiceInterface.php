@@ -6,8 +6,7 @@ use App\Models\Image;
 
 interface ImageServiceInterface
 {
-    public function storeImageInDisk($image): string;
-    public function storeImageInDatabase($title, $url): Image;
+    public function storeNewImage($image, $title): Image;
     public function deleteDataBaseImage($dataBaseImage): bool;
     public function deleteImageFromDisk($imageUrl): bool;
 }

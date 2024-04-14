@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
+use Exception;
 
 class GalleryController extends Controller
 {
@@ -38,10 +39,14 @@ class GalleryController extends Controller
             $return = $image->storePubliclyAs('uploads', $name, 'public');
             $url = asset('storage/' . $return);
 
-            Image::create([
-                'title' => $title,
-                'url' => $url
-            ]);
+            try {
+                Image::create([
+                    'title' => $title,
+                    'url' => $url
+                ]);
+            } catch (Exception $error) {
+                Storage::disk('public')->delete($return);
+            }
 
             return redirect()->route('index');
         }

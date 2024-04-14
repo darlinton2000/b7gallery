@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Exception;
+use Illuminate\Validation\Rule;
 
 class GalleryController extends Controller
 {
@@ -31,13 +32,30 @@ class GalleryController extends Controller
      */
     public function upload(Request $request): RedirectResponse
     {
+        $request->validate([
+            'title' => 'required|string|max:255|min:6',
+            'image' => [
+                'required',
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                'max:2048',
+                Rule::dimensions()->maxWidth(100)->maxHeight(100)
+            ]
+        ]);
+
         if ($request->hasFile('image')) {
             $title = $request->input('title');
             $image = $request->file('image');
             $name = $image->hashName();
 
-            $return = $image->storePubliclyAs('uploads', $name, 'public');
-            $url = asset('storage/' . $return);
+            try {
+                $return = $image->storePubliclyAs('uploads', $name, 'public');
+                $url = asset('storage/' . $return);
+            } catch (Exception $error) {
+                return redirect()->back()->withErrors([
+                    'error' => 'Erro 001 ao salvar a imagem. Tente novamente.'
+                ]);
+            }
 
             try {
                 Image::create([
@@ -46,6 +64,10 @@ class GalleryController extends Controller
                 ]);
             } catch (Exception $error) {
                 Storage::disk('public')->delete($return);
+
+                return redirect()->back()->withErrors([
+                    'error' => 'Erro 002 ao salvar a imagem. Tente novamente.'
+                ]);
             }
 
             return redirect()->route('index');

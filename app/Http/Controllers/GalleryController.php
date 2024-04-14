@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Image;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
@@ -12,6 +13,13 @@ use Illuminate\Validation\Rule;
 
 class GalleryController extends Controller
 {
+    protected ImageService $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     /**
      * Retorna a view index
      *
@@ -38,11 +46,11 @@ class GalleryController extends Controller
         $image = $request->file('image');
 
         try {
-            $url = $this->storeImageInDisk($image);
-            $dataBaseImage = $this->storeImageInDatabase($title, $url);
+            $url = $this->imageService->storeImageInDisk($image);
+            $dataBaseImage = $this->imageService->storeImageInDatabase($title, $url);
         } catch (Exception $error) {
-            $this->deleteDataBaseImage($dataBaseImage);
-            $this->deleteImageFromDisk($url);
+            $this->imageService->deleteDataBaseImage($dataBaseImage);
+            $this->imageService->deleteImageFromDisk($url);
 
             return redirect()->back()->withErrors([
                 'error' => 'Erro ao salvar a imagem. Tente novamente.'
@@ -90,59 +98,5 @@ class GalleryController extends Controller
                 Rule::dimensions()->maxWidth(2000)->maxHeight(2000)
             ]
         ]);
-    }
-
-    /**
-     * Salva a imagem no disco
-     *
-     * @param $image
-     * @return string
-     */
-    private function storeImageInDisk($image)
-    {
-        $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
-
-        return asset('storage/' . $imageName);
-    }
-
-    /**
-     * Salva a imagem no banco de dados
-     *
-     * @param $title
-     * @param $url
-     * @return Image
-     */
-    private function storeImageInDatabase($title, $url)
-    {
-        return Image::create([
-            'title' => $title,
-            'url' => $url
-        ]);
-    }
-
-    /**
-     * Deleta a imagem do disco
-     *
-     * @param $imageUrl
-     * @return void
-     */
-    private function deleteImageFromDisk($imageUrl)
-    {
-        $imagePath = str_replace(asset('storage/'), '', $imageUrl);
-
-        Storage::disk('public')->delete($imagePath);
-    }
-
-    /**
-     * Deleta a imagem do banco de dados
-     *
-     * @param $dataBaseImage
-     * @return void
-     */
-    private function deleteDataBaseImage($dataBaseImage)
-    {
-        if ($dataBaseImage) {
-            $dataBaseImage->delete();
-        }
     }
 }

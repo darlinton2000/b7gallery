@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Interfaces\ImageServiceInterface;
 use App\Models\Image;
 use Illuminate\Support\Facades\Storage;
 
-class ImageService
+class ImageService implements ImageServiceInterface
 {
     /**
      * Salva a imagem no disco
@@ -13,7 +14,7 @@ class ImageService
      * @param $image
      * @return string
      */
-    public function storeImageInDisk($image)
+    public function storeImageInDisk($image): string
     {
         $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
 
@@ -27,7 +28,7 @@ class ImageService
      * @param $url
      * @return Image
      */
-    public function storeImageInDatabase($title, $url)
+    public function storeImageInDatabase($title, $url): Image
     {
         return Image::create([
             'title' => $title,
@@ -39,13 +40,17 @@ class ImageService
      * Deleta a imagem do banco de dados
      *
      * @param $dataBaseImage
-     * @return void
+     * @return bool
      */
-    public function deleteDataBaseImage($dataBaseImage)
+    public function deleteDataBaseImage($dataBaseImage): bool
     {
         if ($dataBaseImage) {
             $dataBaseImage->delete();
+
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -54,10 +59,15 @@ class ImageService
      * @param $imageUrl
      * @return void
      */
-    public function deleteImageFromDisk($imageUrl)
+    public function deleteImageFromDisk($imageUrl): bool
     {
-        $imagePath = str_replace(asset('storage/'), '', $imageUrl);
+        if ($imageUrl) {
+            $imagePath = str_replace(asset('storage/'), '', $imageUrl);
+            Storage::disk('public')->delete($imagePath);
 
-        Storage::disk('public')->delete($imagePath);
+            return true;
+        }
+
+        return false;
     }
 }

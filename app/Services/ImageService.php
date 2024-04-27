@@ -65,13 +65,22 @@ class ImageService implements ImageServiceInterface
     }
 
     /**
-     * Deleta a imagem do banco de dados e do storage
+     * Verifica a fila do métodos que foram executados e executa os seus respectivos rollback
      *
      * @return void
      */
-    public function roolback()
+    public function rollback()
     {
-        dd($this->rollbackQueue);
+        if (!empty($this->rollbackQueue)) {
+            foreach ($this->rollbackQueue as $interaction) {
+                $method = $interaction['method'];
+                $params = $interaction['params'];
+
+                if (method_exists($this, $method)) {
+                    call_user_func_array([$this, $method], $params);
+                }
+            }
+        }
     }
 
     /**

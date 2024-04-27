@@ -41,15 +41,14 @@ class GalleryController extends Controller
     public function upload(Request $request): RedirectResponse
     {
         $this->validateRequest($request);
-
         $title = $request->input('title');
         $image = $request->file('image');
 
         try {
-            $dataBaseImage = $this->imageService->storeNewImage($image, $title);
+            $this->imageService->storeNewImage($image, $title);
 
         } catch (Exception $error) {
-            $this->imageService->roolback();
+            $this->imageService->rollback();
 
             return redirect()->back()->withErrors([
                 'error' => 'Erro ao salvar a imagem. Tente novamente.'

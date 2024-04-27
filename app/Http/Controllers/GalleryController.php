@@ -49,7 +49,7 @@ class GalleryController extends Controller
             $dataBaseImage = $this->imageService->storeNewImage($image, $title);
 
         } catch (Exception $error) {
-            $this->imageService->roolback($dataBaseImage);
+            $this->imageService->roolback();
 
             return redirect()->back()->withErrors([
                 'error' => 'Erro ao salvar a imagem. Tente novamente.'

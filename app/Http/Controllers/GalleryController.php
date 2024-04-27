@@ -46,10 +46,10 @@ class GalleryController extends Controller
         $image = $request->file('image');
 
         try {
-            $dataBaseImage = $this->imageService->storeNewImage($image, $title['title']);
+            $dataBaseImage = $this->imageService->storeNewImage($image, $title);
+
         } catch (Exception $error) {
-            $this->imageService->deleteDataBaseImage($dataBaseImage);
-            $this->imageService->deleteImageFromDisk($dataBaseImage->url);
+            $this->imageService->roolback($dataBaseImage);
 
             return redirect()->back()->withErrors([
                 'error' => 'Erro ao salvar a imagem. Tente novamente.'
@@ -93,8 +93,8 @@ class GalleryController extends Controller
                 'required',
                 'image',
                 'mimes:jpeg,png,jpg,gif',
-                'max:2048',
-                Rule::dimensions()->maxWidth(2000)->maxHeight(2000)
+                'max:4096',
+                Rule::dimensions()->maxWidth(3000)->maxHeight(3000)
             ]
         ]);
     }

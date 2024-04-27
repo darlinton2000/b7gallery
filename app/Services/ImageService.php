@@ -28,34 +28,6 @@ class ImageService implements ImageServiceInterface
     }
 
     /**
-     * Salva a imagem no disco
-     *
-     * @param $image
-     * @return string
-     */
-    private function storeImageInDisk($image): string
-    {
-        $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
-
-        return asset('storage/' . $imageName);
-    }
-
-    /**
-     * Salva a imagem no banco de dados
-     *
-     * @param $title
-     * @param $url
-     * @return Image
-     */
-    private function storeImageInDatabase($title, $url): Image
-    {
-        return Image::create([
-            'title' => $title,
-            'url' => $url
-        ]);
-    }
-
-    /**
      * Deleta a imagem do banco de dados
      *
      * @param $dataBaseImage
@@ -88,5 +60,45 @@ class ImageService implements ImageServiceInterface
         }
 
         return false;
+    }
+
+    /**
+     * Deleta a imagem do banco de dados e do storage
+     *
+     * @param $dataBaseImage
+     * @return void
+     */
+    public function roolback($dataBaseImage)
+    {
+        $this->deleteDataBaseImage($dataBaseImage);
+        $this->deleteImageFromDisk($dataBaseImage->url);
+    }
+
+    /**
+     * Salva a imagem no disco
+     *
+     * @param $image
+     * @return string
+     */
+    private function storeImageInDisk($image): string
+    {
+        $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
+
+        return asset('storage/' . $imageName);
+    }
+
+    /**
+     * Salva a imagem no banco de dados
+     *
+     * @param $title
+     * @param $url
+     * @return Image
+     */
+    private function storeImageInDatabase($title, $url): Image
+    {
+        return Image::create([
+            'title' => $title,
+            'url' => $url
+        ]);
     }
 }

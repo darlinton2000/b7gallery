@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ImageService implements ImageServiceInterface
 {
-    private $rollbackQueue = null;
+    private $rollbackStack = [];
 
     /**
      * Salva a imagem no disco e no banco de dados
@@ -71,14 +71,14 @@ class ImageService implements ImageServiceInterface
      */
     public function rollback()
     {
-        if (!empty($this->rollbackQueue)) {
-            foreach ($this->rollbackQueue as $interaction) {
-                $method = $interaction['method'];
-                $params = $interaction['params'];
+        while(!empty($this->rollbackStack)) {
+            $rollbackAction = array_pop($this->rollbackStack);
 
-                if (method_exists($this, $method)) {
-                    call_user_func_array([$this, $method], $params);
-                }
+            $method = $rollbackAction['method'];
+            $params = $rollbackAction['params'];
+
+            if (method_exists($this, $method)) {
+                call_user_func_array([$this, $method], $params);
             }
         }
     }
@@ -93,7 +93,7 @@ class ImageService implements ImageServiceInterface
     {
         $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
         $url = asset('storage/' . $imageName);
-        $this->addToRollbackQueue('deleteImageFromDisk', [$url]);
+        $this->addToRollbackStack('deleteImageFromDisk', [$url]);
 
         return $url;
     }
@@ -112,14 +112,14 @@ class ImageService implements ImageServiceInterface
             'url' => $url
         ]);
 
-        $this->addToRollbackQueue('deleteDataBaseImage', [$image]);
+        $this->addToRollbackStack('deleteDataBaseImage', [$image]);
 
         return $image;
     }
 
-    private function addToRollbackQueue($method, $params = [])
+    private function addToRollbackStack($method, $params = [])
     {
-        $this->rollbackQueue[] = [
+        $this->rollbackStack[] = [
             'method' => $method,
             'params' => $params
         ];

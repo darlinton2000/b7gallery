@@ -8,12 +8,12 @@ use Exception;
 use Error;
 use Illuminate\Support\Facades\Storage;
 
-class ImageService implements ImageServiceInterface
+class ImageServiceToS3 implements ImageServiceInterface
 {
     private $rollbackStack = [];
 
     /**
-     * Salva a imagem no disco e no banco de dados
+     * Salva a imagem no s3 e no banco de dados
      *
      * @param $image
      * @param $title
@@ -22,7 +22,7 @@ class ImageService implements ImageServiceInterface
     public function storeNewImage($image, $title): Image
     {
         try {
-            $url = $this->storeImageInDisk($image);
+            $url = $this->storeImageInS3($image);
             return $this->storeImageInDatabase($title, $url);
         } catch (Exception $e) {
             throw new Error('Erro ao salvar a imagem, tente novamente.');
@@ -47,16 +47,16 @@ class ImageService implements ImageServiceInterface
     }
 
     /**
-     * Deleta a imagem do disco
+     * Deleta a imagem do s3
      *
      * @param $imageUrl
      * @return void
      */
-    public function deleteImageFromDisk($imageUrl): bool
+    public function deleteImageFile($imageUrl): bool
     {
         if ($imageUrl) {
-            $imagePath = str_replace(asset('storage/'), '', $imageUrl);
-            Storage::disk('public')->delete($imagePath);
+            $imagePath = str_replace('https://b7gallery.s3.sa-east-1.amazonaws.com/', '', $imageUrl);
+            Storage::disk('s3')->delete($imagePath);
 
             return true;
         }
@@ -84,16 +84,16 @@ class ImageService implements ImageServiceInterface
     }
 
     /**
-     * Salva a imagem no disco
+     * Salva a imagem na AWS S3
      *
      * @param $image
      * @return string
      */
-    private function storeImageInDisk($image): string
+    private function storeImageInS3($image): string
     {
-        $imageName = $image->storePubliclyAs('uploads', $image->hashName(), 'public');
-        $url = asset('storage/' . $imageName);
-        $this->addToRollbackStack('deleteImageFromDisk', [$url]);
+        $imageName = $image->storePublicly('public', 's3');
+        $url = 'https://b7gallery.s3.sa-east-1.amazonaws.com' . $imageName;
+        $this->addToRollbackQueue('deleteImageFromDisk', [$imageName]);
 
         return $url;
     }
@@ -112,12 +112,12 @@ class ImageService implements ImageServiceInterface
             'url' => $url
         ]);
 
-        $this->addToRollbackStack('deleteDataBaseImage', [$image]);
+        $this->addToRollbackQueue('deleteDataBaseImage', [$image]);
 
         return $image;
     }
 
-    private function addToRollbackStack($method, $params = [])
+    private function addToRollbackQueue($method, $params = [])
     {
         $this->rollbackStack[] = [
             'method' => $method,

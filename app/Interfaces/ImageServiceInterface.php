@@ -8,5 +8,5 @@ interface ImageServiceInterface
 {
     public function storeNewImage($image, $title): Image;
     public function deleteDataBaseImage($dataBaseImage): bool;
-    public function deleteImageFromDisk($imageUrl): bool;
+    public function deleteImageFile($imageUrl): bool;
 }

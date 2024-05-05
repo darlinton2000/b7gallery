@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Image;
-use App\Services\ImageService;
+use App\Services\ImageServiceToS3;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
@@ -13,9 +13,9 @@ use Illuminate\Validation\Rule;
 
 class GalleryController extends Controller
 {
-    protected ImageService $imageService;
+    protected ImageServiceToS3 $imageService;
 
-    public function __construct(ImageService $imageService)
+    public function __construct(ImageServiceToS3 $imageService)
     {
         $this->imageService = $imageService;
     }
@@ -68,12 +68,9 @@ class GalleryController extends Controller
     {
         $image = Image::findOrFail($id);
         $url = parse_url($image->url);
-        $path = ltrim($url['path'], '/storage\/');
 
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-            $image->delete();
-        }
+        Storage::disk('s3')->delete($url);
+        $image->delete();
 
         return redirect()->route('index');
     }

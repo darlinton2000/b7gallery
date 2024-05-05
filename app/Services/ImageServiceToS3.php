@@ -92,7 +92,7 @@ class ImageServiceToS3 implements ImageServiceInterface
     private function storeImageInS3($image): string
     {
         $imageName = $image->storePublicly('public', 's3');
-        $url = 'https://b7gallery.s3.sa-east-1.amazonaws.com' . $imageName;
+        $url = 'https://b7gallery.s3.sa-east-1.amazonaws.com/' . $imageName;
         $this->addToRollbackQueue('deleteImageFromDisk', [$imageName]);
 
         return $url;
